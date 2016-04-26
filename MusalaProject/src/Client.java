@@ -15,7 +15,9 @@ public String getName() {
 }
 
 public void setName(String name) {
+	if(name!=null){
 	this.name = name;
+	}
 }
 
 public String getPhoneNumber() {

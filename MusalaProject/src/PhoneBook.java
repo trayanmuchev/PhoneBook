@@ -24,19 +24,9 @@ public void makeNewPhoneBook(File phoneBook) {
 		 while (reader.hasNextLine()) {
 			 String line=reader.nextLine();
 			 String name=line.substring(0,line.lastIndexOf(" "));
-			 String number=line.substring(line.lastIndexOf(" ")+1);
-			 String regex1="/\\+359 [8[789]] [2-9]{1} [0-9]{6}/";
-			 String regex2="/0 [8[789]] [2-9]{1} [0-9]{6}/";
-			 String regex3="/00359 [8[789]] [2-9]{1} [0-9]{6}/";
-			 if(number.matches(regex1)||number.matches(regex2)||number.matches(regex3)){
-				 if(number.matches(regex2)){
-					 number="+359"+number.substring(1, number.length());
-				 }
-				 if(number.matches(regex3)){
-					 number="+359"+number.substring(5, number.length());
-				 }
-				 this.phoneBook.add(new Client(name, number));
-			 }
+			 String number=line.substring(line.lastIndexOf(" ")+MIN_COUNT);
+			 Client client=new Client(name, number);
+			 checkNumber(client);
 		 }
 	} catch (FileNotFoundException e) {
 		e.printStackTrace();
@@ -45,25 +35,49 @@ public void makeNewPhoneBook(File phoneBook) {
 	
 }
 
-public void addClient(Client client){
-	synchronized (this.phoneBook) {
-		this.phoneBook.add(client);
+private boolean checkNumber(Client client) {
+	 boolean isAdd = false;
+	 String regex1="/\\+359 [8[789]] [2-9]{1} [0-9]{6}/";
+	 String regex2="/0 [8[789]] [2-9]{1} [0-9]{6}/";
+	 String regex3="/00359 [8[789]] [2-9]{1} [0-9]{6}/";
+	 if(client.getPhoneNumber().matches(regex1)||client.getPhoneNumber().matches(regex2)||client.getPhoneNumber().matches(regex3)){
+		 isAdd=true;
+		 if(client.getPhoneNumber().matches(regex2)){
+			 client.setPhoneNumber("+359"+client.getPhoneNumber().substring(MIN_COUNT, client.getPhoneNumber().length()));
+		 }
+		 if(client.getPhoneNumber().matches(regex3)){
+			client.setPhoneNumber("+359"+client.getPhoneNumber().substring(MAX_COUNT, client.getPhoneNumber().length()));
+		 }
+		 this.phoneBook.add(client);
+	 }
+	 return isAdd;
+}
+
+public void addClient(Client client) throws PhoneNumberFormatException{
+	if(client!=null){
+	boolean isAdd=false;
+	isAdd=checkNumber(client);
+	if(isAdd==false){
+		throw new PhoneNumberFormatException();
+	}
 	}
 }
 
 public void removeClient(Client client){
-	synchronized (this.phoneBook) {
+	if(client!=null){
 		this.phoneBook.remove(client);
 	}
 }
 
 public List<Client> takeNumbers(String name){
 	List<Client> forReturn=new ArrayList<Client>();
+	if(name!=null){
 	for(Client client:this.phoneBook){
 		if(client.getName().equals(name)){
 			client.setCalls();
 			forReturn.add(client);
 		}
+	}
 	}
 	return forReturn;
 }
